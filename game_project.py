@@ -473,8 +473,8 @@ def main():
         swords.append(sword_2)
         swords.append(sword_3)
         gamestart(wall, background)
-        gameplay(background, wall, knight, door, obstacle_list, guard,bullets, swords)
-        gameover(background, wall, knight, door, obstacle_list, guard,bullets, swords)
+        gameplay(background, wall, knight, door, obstacle_list, guard, bullets, swords)
+        gameover(background, wall, knight, door, obstacle_list, guard, bullets, swords)
 
 if __name__ == "__main__":
     main()
