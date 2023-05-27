@@ -225,8 +225,8 @@ class Bullet():
         self.last_shot_time = 0
         self.dx = 0
         self.dy = 0
-        self.width = self.radius*2
-        self.height = self.radius*2
+        self.width = self.radius
+        self.height = self.radius
  
     #the bullet will fire from the guard
     #and aim to the the location of the knight
