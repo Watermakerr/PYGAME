@@ -13,16 +13,11 @@ fpsClock = pygame.time.Clock()
 
 backgroud_image = pygame.image.load("images\\background.png")
 wall_image = pygame.image.load("images\\wall.png")
-knigh_image = pygame.image.load("images\\knight.png")
-knigh_image_scale = pygame.transform.scale(knigh_image,(50,50))
+knight_image = pygame.transform.scale(pygame.image.load("images\\knight.png"),(50,50))
 sword_image = pygame.image.load("images\\sword.png")
-door_open_image = pygame.image.load("images\\door_open.png")
-door_close_image = pygame.image.load("images\\door_close.png")
-door_close_image_scale = pygame.transform.scale(door_close_image, (50, 50))
-door_open_image_scale = pygame.transform.scale(door_open_image, (50, 50))
-guard_image = pygame.image.load("images\\guard.png")
-guard_image_scale = pygame.transform.scale(guard_image, (50, 50))
-
+door_close_image = pygame.transform.scale(pygame.image.load("images\\door_close.png"), (50, 50))
+door_open_image = pygame.transform.scale(pygame.image.load("images\\door_open.png"), (50, 50))
+guard_image_scale = pygame.transform.scale(pygame.image.load("images\\guard.png"), (50, 50))
 
 class Background:
     def __init__(self):
@@ -65,7 +60,7 @@ class Wall:
 
 class Knight:
     def __init__(self):
-        self.image = knigh_image_scale
+        self.image = knight_image
         self.x = TILE_SIZE
         self.y = WINDOWHEIGHT - 2 * TILE_SIZE
         self.move_speed = 5  # pixels per frame
@@ -151,7 +146,7 @@ class Sword:
 
 class Door:
     def __init__(self):
-        self.image = door_close_image_scale
+        self.image = door_close_image
         self.x = WINDOWWIDTH - TILE_SIZE
         self.y = WINDOWHEIGHT - 2 * TILE_SIZE
 
@@ -159,7 +154,7 @@ class Door:
         DISPLAYSURF.blit(self.image, (self.x, self.y))
 
     def open(self):
-        self.image = door_open_image_scale
+        self.image = door_open_image
 
 
 class Guard:
