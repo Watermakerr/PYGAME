@@ -10,21 +10,18 @@ pygame.init()
 DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 FPS = 60
 fpsClock = pygame.time.Clock()
+icon = pygame.image.load("images\guard.png")
+pygame.display.set_icon(icon)
+pygame.display.set_caption("Dungeon")
 
-backgroud_image = pygame.image.load("images\\background.png")
-wall_image = pygame.image.load("images\\wall.png")
-knight_image = pygame.transform.scale(pygame.image.load("images\\knight.png"),(50,50))
 sword_image = pygame.image.load("images\\sword.png")
-door_close_image = pygame.transform.scale(pygame.image.load("images\\door_close.png"), (50, 50))
-door_open_image = pygame.transform.scale(pygame.image.load("images\\door_open.png"), (50, 50))
-guard_image_scale = pygame.transform.scale(pygame.image.load("images\\guard.png"), (50, 50))
 start_button_image = pygame.image.load("images\start_button.png")
 exit_button_image = pygame.image.load("images\exit_button.png")
 back_button_image = pygame.image.load("images\\back_button.png")
 
 class Background:
     def __init__(self):
-        self.image = backgroud_image
+        self.image = pygame.image.load("images\\background.png")
 
     # draw background in all of the screen except the wall
     def draw(self):  
@@ -37,7 +34,7 @@ class Background:
 
 class Wall:
     def __init__(self):
-        self.image = wall_image
+        self.image = pygame.image.load("images\\wall.png")
 
     #draw the weall in the edge of the scree
     def draw(self):
@@ -64,7 +61,7 @@ class Wall:
 
 class Knight:
     def __init__(self):
-        self.image = knight_image
+        self.image = pygame.transform.scale(pygame.image.load("images\\knight.png"),(50,50))
         self.x = TILE_SIZE
         self.y = WINDOWHEIGHT - 2 * TILE_SIZE
         self.move_speed = 5  # pixels per frame
@@ -128,7 +125,7 @@ class Obstacle:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.image = wall_image
+        self.image = pygame.image.load("images\\wall.png")
         self.width = TILE_SIZE
         self.height = TILE_SIZE
 
@@ -138,7 +135,7 @@ class Obstacle:
 
 class Sword:
     def __init__(self, x, y):
-        self.image = sword_image
+        self.image = pygame.image.load("images\\sword.png")
         self.x = x
         self.y = y
         self.width = TILE_SIZE
@@ -150,7 +147,7 @@ class Sword:
 
 class Door:
     def __init__(self):
-        self.image = door_close_image
+        self.image = pygame.transform.scale(pygame.image.load("images\\door_close.png"), (50, 50))
         self.x = WINDOWWIDTH - TILE_SIZE
         self.y = WINDOWHEIGHT - 2 * TILE_SIZE
 
@@ -158,12 +155,12 @@ class Door:
         DISPLAYSURF.blit(self.image, (self.x, self.y))
 
     def open(self):
-        self.image = door_open_image
+        self.image = pygame.transform.scale(pygame.image.load("images\\door_open.png"), (50, 50))
 
 
 class Guard:
     def __init__(self, x, y, knight):
-        self.image = guard_image_scale
+        self.image = pygame.transform.scale(pygame.image.load("images\\guard.png"), (50, 50))
         self.x = x
         self.y = y
         self.speed = 3
