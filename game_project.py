@@ -390,7 +390,7 @@ def gameplay(background, wall, knight, door, obstacle_list, guard,bullets, sword
         pygame.display.update()
 
 #tell the player that they won or lost
-#draw the back button to return to menu
+#add return button
 def gameover(background, wall, knight, door, obstacle_list, guard, bullets, swords):
     button_back = Button(325,400,back_button_image,1)
     font = pygame.font.SysFont("consolas", 40)
