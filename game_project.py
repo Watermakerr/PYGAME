@@ -18,6 +18,9 @@ sword_image = pygame.image.load("images\\sword.png")
 door_close_image = pygame.transform.scale(pygame.image.load("images\\door_close.png"), (50, 50))
 door_open_image = pygame.transform.scale(pygame.image.load("images\\door_open.png"), (50, 50))
 guard_image_scale = pygame.transform.scale(pygame.image.load("images\\guard.png"), (50, 50))
+start_button_image = pygame.image.load("images\start_button.png")
+exit_button_image = pygame.image.load("images\exit_button.png")
+back_button_image = pygame.image.load("images\\back_button.png")
 
 class Background:
     def __init__(self):
@@ -36,6 +39,7 @@ class Wall:
     def __init__(self):
         self.image = wall_image
 
+    #draw the weall in the edge of the scree
     def draw(self):
         # draw the top wall and dowm wall
         for i in range(NUM_TILES_WIDTH):  
@@ -67,7 +71,7 @@ class Knight:
         self.move_direction = None
         self.width = TILE_SIZE
         self.height = TILE_SIZE
-        
+    #moving the knight 
     def update(self, move_left, move_right, move_top, move_down, obstacles):
         # move if the new position is not collied with the obstacle
         if move_left:
@@ -242,6 +246,36 @@ class Bullet():
     def draw(self):
         pygame.draw.circle(DISPLAYSURF, self.color, (int(self.x), int(self.y)), self.radius)
 
+
+class Button():
+    def __init__(self, x, y, image, scale):
+        width = image.get_width()
+        height = image.get_height()
+        self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.clicked = False
+    
+    #draw the button and check if it is clicked
+    def draw(self):
+        action = False
+		#get mouse position
+        pos = pygame.mouse.get_pos()
+
+		#check mouseover and clicked conditions
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                self.clicked = True
+                action = True
+
+        if pygame.mouse.get_pressed()[0] == 0:
+            self.clicked = False
+
+		#draw button on screen
+        DISPLAYSURF.blit(self.image, (self.rect.x, self.rect.y))
+
+        return action
+
 # check if two object are collided 
 def check_collision(rect_1, rect_2): 
     rect1_rect = pygame.Rect(rect_1.x, rect_1.y, rect_1.width, rect_1.height)
@@ -300,13 +334,13 @@ def gameplay(background, wall, knight, door, obstacle_list, guard,bullets, sword
             obstacle.draw()
 
         # Get the current time
-        current_time = pygame.time.get_ticks()
         # Check if it's time to shoot a bullet
-        if current_time - last_shot_time > shoot_interval:
         # Create a new bullet at the guard's location and add it to the list
+        # update the last shot time
+        current_time = pygame.time.get_ticks()
+        if current_time - last_shot_time > shoot_interval:
             new_bullet = Bullet(guard, knight.x, knight.y)
             bullets.append(new_bullet)
-        # update the last shot time
             last_shot_time = current_time
 
         for bullet in bullets:
@@ -358,21 +392,16 @@ def gameplay(background, wall, knight, door, obstacle_list, guard,bullets, sword
         fpsClock.tick(FPS)
         pygame.display.update()
 
-
+#tell the player that they won or lost
+#draw the back button to return to menu
 def gameover(background, wall, knight, door, obstacle_list, guard, bullets, swords):
+    button_back = Button(325,400,back_button_image,1)
     font = pygame.font.SysFont("consolas", 40)
-    return_text = font.render("Press space to return to menu", True, (0,0,0))
-    return_text_rect = return_text.get_rect()
-    return_text_rect.centerx = WINDOWWIDTH // 2
-    return_text_rect.centery = WINDOWHEIGHT // 2 +70
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == KEYDOWN:
-                if event.key == K_SPACE:
-                    return
 
         background.draw()
         wall.draw()
@@ -397,7 +426,6 @@ def gameover(background, wall, knight, door, obstacle_list, guard, bullets, swor
             text_rect.centerx = WINDOWWIDTH // 2 
             text_rect.centery = WINDOWHEIGHT // 2
             DISPLAYSURF.blit(text, (text_rect))
-            DISPLAYSURF.blit(return_text, (return_text_rect))
 
         #if winning moving the knight forward until cant see anymore
         #print the message win
@@ -409,44 +437,33 @@ def gameover(background, wall, knight, door, obstacle_list, guard, bullets, swor
             text_rect.centerx = WINDOWWIDTH // 2
             text_rect.centery = WINDOWHEIGHT // 2
             DISPLAYSURF.blit(text, (text_rect))
-            DISPLAYSURF.blit(return_text, (return_text_rect))
-            
+        
+        if button_back.draw():
+            return
         fpsClock.tick(FPS)
         pygame.display.update()
+
 def gamestart(wall, background):
-    font = pygame.font.SysFont("consolas", 70)
-    text = font.render('Press space to start', True, (255, 255, 255))
-
-    # Set top the initial state of the text
-    text_rect = text.get_rect(center=(WINDOWWIDTH//2, WINDOWHEIGHT//2))
-    is_visible = True
-    blink_interval = 500  # milliseconds
-    last_blink_time = pygame.time.get_ticks()
-
+    start_button = Button(60, 237, start_button_image,1)
+    exit_button = Button(500, 237, exit_button_image,1)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == KEYDOWN:
-                if event.key == K_SPACE:
-                    return
 
-        # update the state of the text
-        # make the text disappear and appear depending on the time
-        current_time = pygame.time.get_ticks()
-        if current_time - last_blink_time >= blink_interval:
-            is_visible = not is_visible
-            last_blink_time = current_time
-    
-        # Draw the text
         wall.draw()
         background.draw()
-        if is_visible:
-            DISPLAYSURF.blit(text, text_rect)
+        if start_button.draw():
+            return
+        if exit_button.draw():
+            pygame.quit()
+            sys.exit()
 
         pygame.display.update()
-        fpsClock.tick(FPS)    
+        fpsClock.tick(FPS)
+
+        
 def main():
     background = Background()
     wall = Wall()
