@@ -218,7 +218,6 @@ class Bullet():
         self.speed = 10
         self.color = (255,0,0)
         self.radius = 8
-        self.last_shot_time = 0
         self.dx = 0
         self.dy = 0
         self.width = self.radius
@@ -253,8 +252,12 @@ class Button():
         self.rect.topleft = (x, y)
         self.clicked = False
     
-    #draw the button and check if it is clicked
+    #draw the button
     def draw(self):
+		#draw button on screen
+        DISPLAYSURF.blit(self.image, (self.rect.x, self.rect.y))
+
+    def is_click(self):
         action = False
 		#get mouse position
         pos = pygame.mouse.get_pos()
@@ -267,10 +270,7 @@ class Button():
 
         if pygame.mouse.get_pressed()[0] == 0:
             self.clicked = False
-
-		#draw button on screen
-        DISPLAYSURF.blit(self.image, (self.rect.x, self.rect.y))
-
+        
         return action
 
 # check if two object are collided 
@@ -435,7 +435,8 @@ def gameover(background, wall, knight, door, obstacle_list, guard, bullets, swor
             text_rect.centery = WINDOWHEIGHT // 2
             DISPLAYSURF.blit(text, (text_rect))
         
-        if button_back.draw():
+        button_back.draw()
+        if button_back.is_click():
             return
         fpsClock.tick(FPS)
         pygame.display.update()
@@ -451,9 +452,11 @@ def gamestart(wall, background):
 
         wall.draw()
         background.draw()
-        if start_button.draw():
+        start_button.draw()
+        exit_button.draw()
+        if start_button.is_click():
             return
-        if exit_button.draw():
+        if exit_button.is_click():
             pygame.quit()
             sys.exit()
 
