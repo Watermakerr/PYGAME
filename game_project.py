@@ -393,6 +393,7 @@ def gameplay(background, wall, knight, door, obstacle_list, guard,bullets, sword
 #add return button
 def gameover(background, wall, knight, door, obstacle_list, guard, bullets, swords):
     button_back = Button(325,400,back_button_image,1)
+    replay_button = Button(325, 500, start_button_image,0.5)
     font = pygame.font.SysFont("consolas", 40)
     while True:
         for event in pygame.event.get():
@@ -436,8 +437,12 @@ def gameover(background, wall, knight, door, obstacle_list, guard, bullets, swor
             DISPLAYSURF.blit(text, (text_rect))
         
         button_back.draw()
+        replay_button.draw()
         if button_back.is_click():
+            return 1
+        if replay_button.is_click():
             return
+        
         fpsClock.tick(FPS)
         pygame.display.update()
 
@@ -463,7 +468,6 @@ def gamestart(wall, background):
         pygame.display.update()
         fpsClock.tick(FPS)
 
-        
 def main():
     background = Background()
     wall = Wall()
@@ -478,15 +482,18 @@ def main():
     sword_2 = Sword(300,100)
     sword_3 = Sword(700,200)
     while True:
-        #each time the game restart, renew the bullets and swords
-        bullets = []
-        swords = []
-        swords.append(sword_1)
-        swords.append(sword_2)
-        swords.append(sword_3)
         gamestart(wall, background)
-        gameplay(background, wall, knight, door, obstacle_list, guard, bullets, swords)
-        gameover(background, wall, knight, door, obstacle_list, guard, bullets, swords)
+        while True:
+            #each time a newgame star, renew the bullets and swords
+            bullets = []
+            swords = []
+            swords.append(sword_1)
+            swords.append(sword_2)
+            swords.append(sword_3)
+            gameplay(background, wall, knight, door, obstacle_list, guard, bullets, swords)
+            # Check if the game is over and the "Replay" button was clicked
+            if gameover(background, wall, knight, door, obstacle_list, guard, bullets, swords) == 1:
+                break
 
 if __name__ == "__main__":
     main()
