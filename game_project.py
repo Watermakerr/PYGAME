@@ -215,7 +215,7 @@ class Bullet():
         self.y = guard.y + 50 // 2
         self.dest_x = dest_x
         self.dest_y = dest_y
-        self.speed = 8
+        self.speed = 10
         self.color = (255,0,0)
         self.radius = 8
         self.dx = 0
