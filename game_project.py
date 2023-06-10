@@ -1,7 +1,7 @@
 import pygame, sys, math
 from pygame.locals import *
 
-WINDOWWIDTH = 800
+WINDOWWIDTH = 900
 WINDOWHEIGHT = 600
 TILE_SIZE = 50
 NUM_TILES_WIDTH = WINDOWWIDTH // (TILE_SIZE)
@@ -14,7 +14,7 @@ icon = pygame.image.load("images\guard.png")
 pygame.display.set_icon(icon)
 pygame.display.set_caption("Dungeon")
 
-sword_image = pygame.image.load("images\\sword.png")
+Key_image = pygame.image.load("images\\Key.png")
 start_button_image = pygame.image.load("images\start_button.png")
 exit_button_image = pygame.image.load("images\exit_button.png")
 back_button_image = pygame.image.load("images\\back_button.png")
@@ -34,7 +34,7 @@ class Background:
 
 class Wall:
     def __init__(self):
-        self.image = pygame.image.load("images\\wall.png")
+        self.image = pygame.transform.scale(pygame.image.load("images\\wall.png"), (50, 50))
 
     #draw the weall in the edge of the scree
     def draw(self):
@@ -125,7 +125,7 @@ class Obstacle:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.image = pygame.image.load("images\\wall.png")
+        self.image = pygame.transform.scale(pygame.image.load("images\\wall.png"), (50, 50))
         self.width = TILE_SIZE
         self.height = TILE_SIZE
 
@@ -133,9 +133,9 @@ class Obstacle:
         DISPLAYSURF.blit(self.image, ((self.x, self.y, self.width, self.height)))
 
 
-class Sword:
+class Key:
     def __init__(self, x, y):
-        self.image = pygame.image.load("images\\sword.png")
+        self.image = pygame.transform.scale(pygame.image.load("images\\key.png"),(50,50))
         self.x = x
         self.y = y
         self.width = TILE_SIZE
@@ -281,12 +281,11 @@ def check_collision(rect_1, rect_2):
         return True
     return False
 
-def gameplay(background, wall, knight, door, obstacle_list, guard,bullets, sword):
-    guard.__init__(150, 200, knight)
+def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, Key):
     knight.__init__()
     door.__init__()
     count = 0
-    swords = sword
+    Keys = Key
     move_left = False
     move_right = False
     move_top = False
@@ -322,11 +321,13 @@ def gameplay(background, wall, knight, door, obstacle_list, guard,bullets, sword
         wall.draw()
         door.draw()
 
-        for sword in swords:
-            sword.draw()
+        for key in Keys:
+            key.draw()
 
-        guard.draw()
-        guard.update( obstacle_list)
+        for guard in guard_list:
+            guard.draw()
+            guard.update(obstacle_list)
+
         for obstacle in obstacle_list:
             obstacle.draw()
 
@@ -357,9 +358,9 @@ def gameplay(background, wall, knight, door, obstacle_list, guard,bullets, sword
             
         # if the knght touch the key, the key disappears
         # and count increase by one
-        for sword in swords:
-            if check_collision(knight, sword):
-                swords.remove(sword)
+        for Key in Keys:
+            if check_collision(knight, Key):
+                Keys.remove(Key)
                 count += 1
         #if the knght touach the bullet, game end
         for bullet in bullets:
@@ -384,14 +385,14 @@ def gameplay(background, wall, knight, door, obstacle_list, guard,bullets, sword
         font = pygame.font.SysFont("consolas", 30)
         text = font.render(f":{count}/3", True, (0, 0, 0))
         DISPLAYSURF.blit(text, (40, 22))
-        DISPLAYSURF.blit(sword_image, (0, 10))
+        DISPLAYSURF.blit(Key_image, (0, 10))
 
         fpsClock.tick(FPS)
         pygame.display.update()
 
 #tell the player that they won or lost
-#add return button
-def gameover(background, wall, knight, door, obstacle_list, guard, bullets, swords):
+#add return button and replay button
+def gameover(background, wall, knight, door, obstacle_list, guard_list, bullets, Keys):
     button_back = Button(325,400,back_button_image,1)
     replay_button = Button(325, 500, start_button_image,0.5)
     font = pygame.font.SysFont("consolas", 40)
@@ -405,9 +406,12 @@ def gameover(background, wall, knight, door, obstacle_list, guard, bullets, swor
         wall.draw()
         door.draw()
         knight.draw()
-        guard.draw()
-        for sword in swords:
-            sword.draw()
+        
+        for guard in guard_list:
+            guard.draw()
+
+        for key in Keys:
+            key.draw()
 
         for bullet in bullets:
             bullet.draw()
@@ -418,7 +422,6 @@ def gameover(background, wall, knight, door, obstacle_list, guard, bullets, swor
         #if the knight touches the guard or bullet, lose
         #print the message lose
         if check_collision(knight, guard) or any(check_collision(knight, bullet) for bullet in bullets):
-
             text = font.render("You lose!", True, (0,0,0))
             text_rect = text.get_rect()
             text_rect.centerx = WINDOWWIDTH // 2 
@@ -430,7 +433,7 @@ def gameover(background, wall, knight, door, obstacle_list, guard, bullets, swor
         else:   
             if (knight.x < WINDOWWIDTH):  
                 knight.x += 1
-            text = font.render("You won!", True, (0, 0, 0))
+            text = font.render("You win!", True, (0, 0, 0))
             text_rect = text.get_rect()
             text_rect.centerx = WINDOWWIDTH // 2
             text_rect.centery = WINDOWHEIGHT // 2
@@ -438,6 +441,7 @@ def gameover(background, wall, knight, door, obstacle_list, guard, bullets, swor
         
         button_back.draw()
         replay_button.draw()
+
         if button_back.is_click():
             return 1
         if replay_button.is_click():
@@ -473,26 +477,28 @@ def main():
     wall = Wall()
     knight = Knight()
     door = Door()
-    guard = Guard(150, 200, knight)
     obstacle_list = []
     for i in range(4,9):
         obstacle = Obstacle(TILE_SIZE * i, 250)
         obstacle_list.append(obstacle)
-    sword_1 = Sword(550,400)
-    sword_2 = Sword(300,100)
-    sword_3 = Sword(700,200)
+    Key_1 = Key(550,400)
+    Key_2 = Key(300,100)
+    Key_3 = Key(700,200)
     while True:
         gamestart(wall, background)
         while True:
-            #each time a newgame star, renew the bullets and swords
+            #each time a newgame star, renew the bullets and Keys
+            guard_list = []
+            guard_1 = Guard(150, 200, knight)
+            guard_list.append(guard_1)
             bullets = []
-            swords = []
-            swords.append(sword_1)
-            swords.append(sword_2)
-            swords.append(sword_3)
-            gameplay(background, wall, knight, door, obstacle_list, guard, bullets, swords)
+            Keys = []
+            Keys.append(Key_1)
+            Keys.append(Key_2)
+            Keys.append(Key_3)
+            gameplay(background, wall, knight, door, obstacle_list, guard_list, bullets, Keys)
             # Check if the game is over and the "Replay" button was clicked
-            if gameover(background, wall, knight, door, obstacle_list, guard, bullets, swords) == 1:
+            if gameover(background, wall, knight, door, obstacle_list, guard_list, bullets, Keys) == 1:
                 break
 
 if __name__ == "__main__":
