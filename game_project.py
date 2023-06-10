@@ -337,9 +337,10 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, 
         # update the last shot time
         current_time = pygame.time.get_ticks()
         if current_time - last_shot_time > shoot_interval:
-            new_bullet = Bullet(guard, knight.x, knight.y)
-            bullets.append(new_bullet)
-            last_shot_time = current_time
+            for guard in guard_list:
+                new_bullet = Bullet(guard, knight.x, knight.y)
+                bullets.append(new_bullet)
+                last_shot_time = current_time
 
         for bullet in bullets:
             bullet.update()
@@ -490,6 +491,8 @@ def main():
             #each time a newgame star, renew the bullets and Keys
             guard_list = []
             guard_1 = Guard(150, 200, knight)
+            guard_2 = Guard(250,300, knight)
+            guard_list.append(guard_2)
             guard_list.append(guard_1)
             bullets = []
             Keys = []
