@@ -506,7 +506,7 @@ def main():
     while True:
         gamestart(wall, background)
         while True:
-            #each time a newgame star, renew the bullets and Keys
+            #each time a newgame star, renew the bullets and keys and location of guards
             guard_list = []
             guard_1 = Guard(TILE_SIZE*10, TILE_SIZE*2, knight)
             guard_2 = Guard(250,300, knight)
