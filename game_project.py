@@ -18,6 +18,7 @@ key_image = pygame.transform.scale(pygame.image.load("images\\key.png"), (50,50)
 start_button_image = pygame.image.load("images\start_button.png")
 exit_button_image = pygame.image.load("images\exit_button.png")
 back_button_image = pygame.image.load("images\\back_button.png")
+replay_button_image = pygame.image.load("images\\replay_button.png")
 
 class Background:
     def __init__(self):
@@ -273,6 +274,16 @@ class Button():
         
         return action
 
+
+class Score():
+    def __init__(self):
+        self.time = 0
+    
+    def update(self, start_time):
+        time = pygame.time.get_ticks() - start_time
+        self.time = round(time/1000,2)
+    
+    
 # check if two object are collided 
 def check_collision(rect_1, rect_2): 
     rect1_rect = pygame.Rect(rect_1.x, rect_1.y, rect_1.width, rect_1.height)
@@ -281,18 +292,18 @@ def check_collision(rect_1, rect_2):
         return True
     return False
 
-def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, Key):
+def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, keys, score):
     knight.__init__()
     door.__init__()
+    score.__init__()
     count = 0
-    Keys = Key
     move_left = False
     move_right = False
     move_top = False
     move_down = False
     last_shot_time = 0
     shoot_interval = 500
-
+    start_time = pygame.time.get_ticks()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -321,7 +332,7 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, 
         wall.draw()
         door.draw()
 
-        for key in Keys:
+        for key in keys:
             key.draw()
 
         for guard in guard_list:
@@ -348,7 +359,8 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, 
 
         knight.draw()
         knight.update(move_left, move_right, move_top, move_down, obstacle_list)
-        
+        score.update(start_time)
+
         # if knight pick 3 keys, the door is opened
         if count == 3:  
             door.open()
@@ -359,9 +371,9 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, 
             
         # if the knght touch the key, the key disappears
         # and count increase by one
-        for Key in Keys:
-            if check_collision(knight, Key):
-                Keys.remove(Key)
+        for key in keys:
+            if check_collision(knight, key):
+                keys.remove(key)
                 count += 1
         #if the knght touach the bullet, game end
         for bullet in bullets:
@@ -394,9 +406,9 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, 
 
 #tell the player that they won or lost
 #add return button and replay button
-def gameover(background, wall, knight, door, obstacle_list, guard_list, bullets, Keys):
-    button_back = Button(325,400,back_button_image,1)
-    replay_button = Button(325, 500, start_button_image,0.5)
+def gameover(background, wall, knight, door, obstacle_list, guard_list, bullets, keys,score):
+    button_back = Button(300,400,back_button_image,3)
+    replay_button = Button(500, 400, replay_button_image,3)
     font = pygame.font.SysFont("consolas", 40)
     while True:
         for event in pygame.event.get():
@@ -412,7 +424,7 @@ def gameover(background, wall, knight, door, obstacle_list, guard_list, bullets,
         for guard in guard_list:
             guard.draw()
 
-        for key in Keys:
+        for key in keys:
             key.draw()
 
         for bullet in bullets:
@@ -424,22 +436,27 @@ def gameover(background, wall, knight, door, obstacle_list, guard_list, bullets,
         #if the knight touches the guard or bullet, lose
         #print the message lose
         if any(check_collision(knight, guard) for guard in guard_list) or any(check_collision(knight, bullet) for bullet in bullets):
-            text = font.render("You lose!", True, (0,0,0))
+            text = font.render("You lose!", True, (0,0,139))
             text_rect = text.get_rect()
             text_rect.centerx = WINDOWWIDTH // 2 
-            text_rect.centery = WINDOWHEIGHT // 2
+            text_rect.centery = WINDOWHEIGHT // 2 - 50
             DISPLAYSURF.blit(text, (text_rect))
 
         #if winning moving the knight forward until cant see anymore
-        #print the message win
+        #print the message win and the time it took
         else:   
             if (knight.x < WINDOWWIDTH):  
                 knight.x += 1
-            text = font.render("You win!", True, (0, 0, 0))
+            text = font.render("You win!", True, (0,0,139))
+            score_text = font.render(f"You finish the game in {score.time}s ", True, (0,0,139))
             text_rect = text.get_rect()
+            score_text_rect = score_text.get_rect()
             text_rect.centerx = WINDOWWIDTH // 2
-            text_rect.centery = WINDOWHEIGHT // 2
+            text_rect.centery= WINDOWHEIGHT // 2 - 50
+            score_text_rect.centerx = WINDOWWIDTH // 2 
+            score_text_rect.centery = WINDOWHEIGHT // 2 
             DISPLAYSURF.blit(text, (text_rect))
+            DISPLAYSURF.blit(score_text, (score_text_rect))
         
         button_back.draw()
         replay_button.draw()
@@ -453,8 +470,8 @@ def gameover(background, wall, knight, door, obstacle_list, guard_list, bullets,
         pygame.display.update()
 
 def gamestart(wall, background):
-    start_button = Button(159, 273, start_button_image,0.8)
-    exit_button = Button(550, 273, exit_button_image,0.8)
+    start_button = Button(159, 275, start_button_image,3)
+    exit_button = Button(550, 275, exit_button_image,3)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -484,7 +501,7 @@ def main():
     for i in range(3,7):
         obstacle = Obstacle(TILE_SIZE * i, TILE_SIZE * 5)
         obstacle_list.append(obstacle)
-    for i in range (7,10):
+    for i in range (8,10):
         obstacle = Obstacle(TILE_SIZE * 3, TILE_SIZE * i)
         obstacle_list.append(obstacle)
     for i in range (1,5):
@@ -503,6 +520,7 @@ def main():
     key_1 = Key(550,400)
     key_2 = Key(300,100)
     key_3 = Key(600,100)
+    score = Score()
     while True:
         gamestart(wall, background)
         while True:
@@ -513,13 +531,13 @@ def main():
             guard_list.append(guard_2)
             guard_list.append(guard_1)
             bullets = []
-            Keys = []
-            Keys.append(key_1)
-            Keys.append(key_2)
-            Keys.append(key_3)
-            gameplay(background, wall, knight, door, obstacle_list, guard_list, bullets, Keys)
+            keys = []
+            keys.append(key_1)
+            keys.append(key_2)
+            keys.append(key_3)
+            gameplay(background, wall, knight, door, obstacle_list, guard_list, bullets, keys,score)
             # Check if the game is over and the "Replay" button was clicked
-            if gameover(background, wall, knight, door, obstacle_list, guard_list, bullets, Keys) == 1:
+            if gameover(background, wall, knight, door, obstacle_list, guard_list, bullets, keys,score) == 1:
                 break
 
 if __name__ == "__main__":
