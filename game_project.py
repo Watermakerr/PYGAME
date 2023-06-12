@@ -65,8 +65,7 @@ class Knight:
         self.image = pygame.transform.scale(pygame.image.load("images\\knight.png"),(50,50))
         self.x = TILE_SIZE
         self.y = WINDOWHEIGHT - 2 * TILE_SIZE
-        self.move_speed = 5  # pixels per frame
-        self.move_direction = None
+        self.move_speed = 5 
         self.width = TILE_SIZE
         self.height = TILE_SIZE
     #moving the knight 
@@ -304,6 +303,7 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, 
     last_shot_time = 0
     shoot_interval = 500
     start_time = pygame.time.get_ticks()
+    key_count = len(keys)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -361,8 +361,8 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, 
         knight.update(move_left, move_right, move_top, move_down, obstacle_list)
         score.update(start_time)
 
-        # if knight pick 3 keys, the door is opened
-        if count == 3:  
+        # if knight pick enough keys, the door is opened
+        if count == key_count:  
             door.open()
             # if the knight stand close the door when the door open, win
             if (knight.x == WINDOWWIDTH - 2 * TILE_SIZE\
@@ -397,7 +397,7 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, 
         
         # print the number of key has picked top
         font = pygame.font.SysFont("consolas", 30)
-        text = font.render(f":{count}/3", True, (0, 0, 0))
+        text = font.render(f":{count}/{key_count}", True, (0, 0, 0))
         DISPLAYSURF.blit(text, (40, 22))
         DISPLAYSURF.blit(key_image, (0, 10))
 
@@ -497,7 +497,7 @@ def main():
     knight = Knight()
     door = Door()
     obstacle_list = []
-    #draw obstacle 
+    #create obstacle 
     for i in range(3,7):
         obstacle = Obstacle(TILE_SIZE * i, TILE_SIZE * 5)
         obstacle_list.append(obstacle)
@@ -516,7 +516,7 @@ def main():
     for i in range (12,15):
         obstacle = Obstacle(TILE_SIZE * i, TILE_SIZE * 6)
         obstacle_list.append(obstacle)
-
+    
     key_1 = Key(550,400)
     key_2 = Key(300,100)
     key_3 = Key(600,100)
