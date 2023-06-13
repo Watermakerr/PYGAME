@@ -14,7 +14,7 @@ icon = pygame.image.load("images\guard.png")
 pygame.display.set_icon(icon)
 pygame.display.set_caption("Dungeon")
 
-key_image = pygame.transform.scale(pygame.image.load("images\\key.png"), (50,50))
+key_image = pygame.transform.scale(pygame.image.load("images\\key.png"), (TILE_SIZE,TILE_SIZE))
 start_button_image = pygame.image.load("images\start_button.png")
 exit_button_image = pygame.image.load("images\exit_button.png")
 back_button_image = pygame.image.load("images\\back_button.png")
@@ -22,7 +22,7 @@ replay_button_image = pygame.image.load("images\\replay_button.png")
 
 class Background:
     def __init__(self):
-        self.image = pygame.transform.scale(pygame.image.load("images\\background.png"), (50,50))
+        self.image = pygame.transform.scale(pygame.image.load("images\\background.png"), (TILE_SIZE,TILE_SIZE))
 
     # draw background in all of the screen except the wall
     def draw(self):  
@@ -35,11 +35,11 @@ class Background:
 
 class Wall:
     def __init__(self):
-        self.image = pygame.transform.scale(pygame.image.load("images\\wall.png"), (50,50))
+        self.image = pygame.transform.scale(pygame.image.load("images\\wall.png"), (TILE_SIZE,TILE_SIZE))
 
-    #draw the weall in the edge of the scree
+    #draw the wall in the edge of the scree
     def draw(self):
-        # draw the top wall and dowm wall
+        # draw the top wall and bottom wall
         for i in range(NUM_TILES_WIDTH):  
             x_top = i * TILE_SIZE
             y_top = 0
@@ -61,10 +61,10 @@ class Wall:
 
 
 class Knight:
-    def __init__(self):
-        self.image = pygame.transform.scale(pygame.image.load("images\\knight.png"),(50,50))
-        self.x = TILE_SIZE
-        self.y = WINDOWHEIGHT - 2 * TILE_SIZE
+    def __init__(self, x, y):
+        self.image = pygame.transform.scale(pygame.image.load("images\\knight.png"),(TILE_SIZE,TILE_SIZE))
+        self.x = x
+        self.y = y
         self.move_speed = 5 
         self.width = TILE_SIZE
         self.height = TILE_SIZE
@@ -125,7 +125,7 @@ class Obstacle:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.image = pygame.transform.scale(pygame.image.load("images\\obstacle.png"), (50,50))
+        self.image = pygame.transform.scale(pygame.image.load("images\\obstacle.png"), (TILE_SIZE,TILE_SIZE))
         self.width = TILE_SIZE
         self.height = TILE_SIZE
 
@@ -135,7 +135,7 @@ class Obstacle:
 
 class Key:
     def __init__(self, x, y):
-        self.image = pygame.transform.scale(pygame.image.load("images\\key.png"),(50,50))
+        self.image = pygame.transform.scale(pygame.image.load("images\\key.png"),(TILE_SIZE,TILE_SIZE))
         self.x = x
         self.y = y
         self.width = TILE_SIZE
@@ -147,7 +147,7 @@ class Key:
 
 class Door:
     def __init__(self):
-        self.image = pygame.transform.scale(pygame.image.load("images\\door_close.png"), (50,50))
+        self.image = pygame.transform.scale(pygame.image.load("images\\door_close.png"), (TILE_SIZE,TILE_SIZE))
         self.x = WINDOWWIDTH - TILE_SIZE
         self.y = WINDOWHEIGHT - 2 * TILE_SIZE
 
@@ -155,12 +155,12 @@ class Door:
         DISPLAYSURF.blit(self.image, (self.x, self.y))
 
     def open(self):
-        self.image = pygame.transform.scale(pygame.image.load("images\\door_open.png"), (50,50))
+        self.image = pygame.transform.scale(pygame.image.load("images\\door_open.png"), (TILE_SIZE,TILE_SIZE))
 
 
 class Guard:
     def __init__(self, x, y, knight):
-        self.image = pygame.transform.scale(pygame.image.load("images\\guard.png"), (50,50))
+        self.image = pygame.transform.scale(pygame.image.load("images\\guard.png"), (TILE_SIZE,TILE_SIZE))
         self.x = x
         self.y = y
         self.speed = 3
@@ -292,7 +292,6 @@ def check_collision(rect_1, rect_2):
     return False
 
 def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, keys, score):
-    knight.__init__()
     door.__init__()
     score.__init__()
     count = 0
@@ -390,7 +389,7 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, 
                     bullets.remove(bullet)
                     break  # no need to check for more collisions if bullet hits an obstacle
             
-        #if the knght touch the guard, game end
+        #if the knight touch the guard, game end
         for guard in guard_list:
             if (check_collision(knight, guard)):
                 return
@@ -494,7 +493,6 @@ def gamestart(wall, background):
 def main():
     background = Background()
     wall = Wall()
-    knight = Knight()
     door = Door()
     obstacle_list = []
     #create obstacle 
@@ -525,6 +523,7 @@ def main():
         gamestart(wall, background)
         while True:
             #each time a newgame start, renew the bullets and keys and location of guards
+            knight = Knight(TILE_SIZE, WINDOWHEIGHT - 2 * TILE_SIZE)
             guard_list = []
             guard_1 = Guard(TILE_SIZE*10, TILE_SIZE*2, knight)
             guard_2 = Guard(250,300, knight)
