@@ -75,37 +75,29 @@ class Knight:
             new_x = self.x - self.move_speed
             if not any(
                 check_collision(
-                    pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE), obstacle
-                )
-                for obstacle in obstacles
-            ):
+                    pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE), obstacle)\
+                for obstacle in obstacles):
                 self.x = new_x
         if move_right:
             new_x = self.x + self.move_speed
             if not any(
                 check_collision(
-                    pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE), obstacle
-                )
-                for obstacle in obstacles
-            ):
+                    pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE), obstacle)\
+                for obstacle in obstacles):
                 self.x = new_x
         if move_top:
             new_y = self.y - self.move_speed
             if not any(
                 check_collision(
-                    pygame.Rect(self.x, new_y, TILE_SIZE, TILE_SIZE), obstacle
-                )
-                for obstacle in obstacles
-            ):
+                    pygame.Rect(self.x, new_y, TILE_SIZE, TILE_SIZE), obstacle)\
+                for obstacle in obstacles):
                 self.y = new_y
         if move_down:
             new_y = self.y + self.move_speed
             if not any(
                 check_collision(
-                    pygame.Rect(self.x, new_y, TILE_SIZE, TILE_SIZE), obstacle
-                )
-                for obstacle in obstacles
-            ):
+                    pygame.Rect(self.x, new_y, TILE_SIZE, TILE_SIZE), obstacle)\
+                for obstacle in obstacles):
                 self.y = new_y
         # dont allow the kngit move through the wall
         if self.x < TILE_SIZE:
