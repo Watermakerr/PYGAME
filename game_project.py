@@ -24,7 +24,7 @@ class Background:
     def __init__(self):
         self.image = pygame.transform.scale(pygame.image.load("images\\background.png"), (TILE_SIZE,TILE_SIZE))
 
-    # draw background in all of the screen except the edge
+    # draw background in all of the screen except the edges
     def draw(self):  
         for i in range(1, NUM_TILES_WIDTH - 1):
             for j in range(1, NUM_TILES_HEIGHT - 1):
