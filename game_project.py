@@ -37,7 +37,7 @@ class Wall:
     def __init__(self):
         self.image = pygame.transform.scale(pygame.image.load("images\\wall.png"), (TILE_SIZE,TILE_SIZE))
 
-    #draw the wall in the edge of the scree
+    #draw the wall in the edge of the screen
     def draw(self):
         # draw the top wall and bottom wall
         for i in range(NUM_TILES_WIDTH):  
