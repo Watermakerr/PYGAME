@@ -24,7 +24,7 @@ class Background:
     def __init__(self):
         self.image = pygame.transform.scale(pygame.image.load("images\\background.png"), (TILE_SIZE,TILE_SIZE))
 
-    # draw background in all of the screen except the wall
+    # draw background in all of the screen except the edge
     def draw(self):  
         for i in range(1, NUM_TILES_WIDTH - 1):
             for j in range(1, NUM_TILES_HEIGHT - 1):
@@ -130,7 +130,7 @@ class Obstacle:
         self.height = TILE_SIZE
 
     def draw(self):
-        DISPLAYSURF.blit(self.image, ((self.x, self.y, self.width, self.height)))
+        DISPLAYSURF.blit(self.image, (self.x, self.y))
 
 
 class Key:
@@ -163,7 +163,7 @@ class Guard:
         self.image = pygame.transform.scale(pygame.image.load("images\\guard.png"), (TILE_SIZE,TILE_SIZE))
         self.x = x
         self.y = y
-        self.speed = 3
+        self.speed = 0
         self.start_x = x
         self.knight = knight
         self.width = TILE_SIZE
@@ -408,7 +408,7 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, 
 def gameover(background, wall, knight, door, obstacle_list, guard_list, bullets, keys,score):
     button_back = Button(300,400,back_button_image,3)
     replay_button = Button(500, 400, replay_button_image,3)
-    font = pygame.font.SysFont("consolas", 40)
+    font = pygame.font.SysFont("consolas", 40,bold =True)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -435,7 +435,7 @@ def gameover(background, wall, knight, door, obstacle_list, guard_list, bullets,
         #if the knight touches the guard or bullet, lose
         #print the message lose
         if any(check_collision(knight, guard) for guard in guard_list) or any(check_collision(knight, bullet) for bullet in bullets):
-            text = font.render("You lose!", True, (0,0,139))
+            text = font.render("You lose!", True, (255,255,255))
             text_rect = text.get_rect()
             text_rect.centerx = WINDOWWIDTH // 2 
             text_rect.centery = WINDOWHEIGHT // 2 - 50
@@ -446,8 +446,8 @@ def gameover(background, wall, knight, door, obstacle_list, guard_list, bullets,
         else:   
             if (knight.x < WINDOWWIDTH):  
                 knight.x += 1
-            text = font.render("You win!", True, (0,0,139))
-            score_text = font.render(f"You finish the game in {score.time}s ", True, (0,0,139))
+            text = font.render("You win!", True, (255,255,255))
+            score_text = font.render(f"You finish the game in {score.time}s ", True, (255,255,255))
             text_rect = text.get_rect()
             score_text_rect = score_text.get_rect()
             text_rect.centerx = WINDOWWIDTH // 2
