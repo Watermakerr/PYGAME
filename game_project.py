@@ -1,15 +1,18 @@
 import pygame, sys, math
 from pygame.locals import *
+pygame.init()
 
 WINDOWWIDTH = 900
 WINDOWHEIGHT = 650
+DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+
 TILE_SIZE = 50
 NUM_TILES_WIDTH = WINDOWWIDTH // (TILE_SIZE)
 NUM_TILES_HEIGHT = WINDOWHEIGHT // (TILE_SIZE)
-pygame.init()
-DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+
 FPS = 60
 fpsClock = pygame.time.Clock()
+
 icon = pygame.image.load("images\guard.png")
 pygame.display.set_icon(icon)
 pygame.display.set_caption("Dungeon")
@@ -73,33 +76,26 @@ class Knight:
         # move if the new position is not collied with the obstacle
         if move_left:
             new_x = self.x - self.move_speed
-            if not any(
-                check_collision(
-                    pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE), obstacle)\
-                for obstacle in obstacles):
+            if not any (check_collision (pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE), obstacle)
+            for obstacle in obstacles):
                 self.x = new_x
         if move_right:
             new_x = self.x + self.move_speed
-            if not any(
-                check_collision(
-                    pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE), obstacle)\
-                for obstacle in obstacles):
+            if not any (check_collision (pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE), obstacle)
+            for obstacle in obstacles):
                 self.x = new_x
         if move_top:
             new_y = self.y - self.move_speed
-            if not any(
-                check_collision(
-                    pygame.Rect(self.x, new_y, TILE_SIZE, TILE_SIZE), obstacle)\
+            if not any (check_collision (pygame.Rect(self.x, new_y, TILE_SIZE, TILE_SIZE), obstacle)
                 for obstacle in obstacles):
                 self.y = new_y
         if move_down:
             new_y = self.y + self.move_speed
-            if not any(
-                check_collision(
-                    pygame.Rect(self.x, new_y, TILE_SIZE, TILE_SIZE), obstacle)\
+            if not any (check_collision (pygame.Rect(self.x, new_y, TILE_SIZE, TILE_SIZE), obstacle)
                 for obstacle in obstacles):
                 self.y = new_y
-        # dont allow the kngit move through the wall
+
+        # dont allow the knight move through the wall
         if self.x < TILE_SIZE:
             self.x = TILE_SIZE
         if self.y < TILE_SIZE:
@@ -155,7 +151,7 @@ class Guard:
         self.image = pygame.transform.scale(pygame.image.load("images\\guard.png"), (TILE_SIZE,TILE_SIZE))
         self.x = x
         self.y = y
-        self.speed = 0
+        self.speed = 3
         self.start_x = x
         self.knight = knight
         self.width = TILE_SIZE
@@ -169,25 +165,19 @@ class Guard:
     def update(self,obstacles):
         if self.knight.x > self.x:
             new_x = self.x + self.speed
-            if not any(
-                check_collision(
-                    pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE), obstacle)\
+            if not any (check_collision (pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE), obstacle)
                 for obstacle in obstacles):
                 self.x = new_x
 
         if self.knight.x < self.x:
             new_x = self.x - self.speed
-            if not any(
-                check_collision(
-                    pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE), obstacle)\
+            if not any (check_collision (pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE), obstacle)
                 for obstacle in obstacles):
                 self.x = new_x
 
         if self.knight.y < self.y:
             new_y = self.y - self.speed
-            if not any(
-                check_collision(
-                    pygame.Rect(self.x, new_y, TILE_SIZE, TILE_SIZE), obstacle)\
+            if not any (check_collision (pygame.Rect(self.x, new_y, TILE_SIZE, TILE_SIZE), obstacle)
                 for obstacle in obstacles):
                 self.y = new_y
 
@@ -214,7 +204,6 @@ class Bullet():
         self.dy = 0
         self.width = self.radius
         self.height = self.radius
- 
     #the bullet will fire from the guard
     #and aim to the the location of the knight
     #using the location of the guard and knight make the bullet moving
@@ -284,24 +273,24 @@ def check_collision(rect_1, rect_2):
     return False
 
 def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, keys, score):
-    door.__init__()
+    door.__init__() # Khởi tạo lại door trong mỗi lượt chơi
     score.__init__()
     count = 0
-    move_left = False
+    move_left = False # Hướng di chuyển
     move_right = False
     move_top = False
     move_down = False
-    last_shot_time = 0
-    shoot_interval = 500
-    start_time = pygame.time.get_ticks()
-    key_count = len(keys)
+    last_shot_time = 0 # thời gian cuối đạn đc bắn
+    shoot_interval = 500 # khoảng thời gian giữa 2 lần đạn
+    start_time = pygame.time.get_ticks() # thời gian bắt đầu
+    key_count = len(keys) 
     while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == KEYDOWN:
-                if event.key == K_LEFT:
+        for event in pygame.event.get(): #lấy danh sách sự kiện trong hàng đợi
+            if event.type == pygame.QUIT: # Ktra loại sự kiện: ở đây là quit
+                pygame.quit() # thoát khỏi trof chơi
+                sys.exit() # thoát khỏi chương trình
+            if event.type == KEYDOWN: # ấn 1 phím xuống
+                if event.key == K_LEFT: # phím trái
                     move_left = True
                 if event.key == K_RIGHT:
                     move_right = True
@@ -309,7 +298,7 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, 
                     move_top = True
                 if event.key == K_DOWN:
                     move_down = True
-            if event.type == KEYUP:
+            if event.type == KEYUP: #  nhả phím ra
                 if event.key == K_LEFT:
                     move_left = False
                 if event.key == K_RIGHT:
@@ -319,7 +308,7 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, 
                 if event.key == K_DOWN:
                     move_down = False
 
-        background.draw()
+        background.draw() # vẽ background
         wall.draw()
         door.draw()
 
@@ -333,11 +322,11 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, 
         for obstacle in obstacle_list:
             obstacle.draw()
 
-        # Get the current time
-        # Check if it's time to shoot a bullet
+        # Get the current time : lấy thời gian hiện tại
+        # Check if it's time to shoot a bullet : kta đến lúc bắn đạn chưa
         # Create a new bullet at the guard's location and add it to the list
         # update the last shot time
-        current_time = pygame.time.get_ticks()
+        current_time = pygame.time.get_ticks() 
         if current_time - last_shot_time > shoot_interval:
             for guard in guard_list:
                 new_bullet = Bullet(guard, knight.x, knight.y)
@@ -393,7 +382,7 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list,bullets, 
         DISPLAYSURF.blit(key_image, (0, 10))
 
         fpsClock.tick(FPS)
-        pygame.display.update()
+        pygame.display.update() # Cập nhật giao diện
 
 #tell the player that they won or lost
 #add return button and replay button
@@ -426,7 +415,8 @@ def gameover(background, wall, knight, door, obstacle_list, guard_list, bullets,
         
         #if the knight touches the guard or bullet, lose
         #print the message lose
-        if any(check_collision(knight, guard) for guard in guard_list) or any(check_collision(knight, bullet) for bullet in bullets):
+        if any(check_collision(knight, guard) for guard in guard_list) or any(
+            check_collision(knight, bullet) for bullet in bullets):
             text = font.render("You lose!", True, (255,255,255))
             text_rect = text.get_rect()
             text_rect.centerx = WINDOWWIDTH // 2 
@@ -527,7 +517,8 @@ def main():
             keys.append(key_2)
             keys.append(key_3)
             gameplay(background, wall, knight, door, obstacle_list, guard_list, bullets, keys,score)
-            # Check if the game is over and the "Replay" button was clicked
+            # Check which button was clicked in gameover screen
+            # If back button was clicked return 1
             if gameover(background, wall, knight, door, obstacle_list, guard_list, bullets, keys,score) == 1:
                 break
 
