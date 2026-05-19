@@ -30,48 +30,44 @@ class ScreenShake:
 
 
 class Background:
-    """Background với cached rendering"""
-    def __init__(self):
+    """Background with cached rendering for arbitrary world sizes"""
+    def __init__(self, world_cols=None, world_rows=None):
+        from config import NUM_TILES_WIDTH, NUM_TILES_HEIGHT
         self.image = pygame.transform.scale(pygame.image.load("images\\background.png"), (TILE_SIZE, TILE_SIZE))
-        # Render background 1 lần duy nhất khi khởi tạo - không cần re-render
-        self.cached_bg = pygame.Surface((WINDOWWIDTH, WINDOWHEIGHT))
-        self.cached_bg.fill(COLORS['bg_dark'])  # Fill background color trước
-        for i in range(1, NUM_TILES_WIDTH - 1):
-            for j in range(1, NUM_TILES_HEIGHT - 1):
-                x = i * TILE_SIZE
-                y = j * TILE_SIZE
-                self.cached_bg.blit(self.image, (x, y))
+        cols = world_cols or NUM_TILES_WIDTH
+        rows = world_rows or NUM_TILES_HEIGHT
+        self.world_width = cols * TILE_SIZE
+        self.world_height = rows * TILE_SIZE
+        # Render background once — tiles inside the wall border
+        self.cached_bg = pygame.Surface((self.world_width, self.world_height))
+        self.cached_bg.fill(COLORS['bg_dark'])
+        for i in range(1, cols - 1):
+            for j in range(1, rows - 1):
+                self.cached_bg.blit(self.image, (i * TILE_SIZE, j * TILE_SIZE))
     
     def draw(self, offset=(0, 0)):
-        # Chỉ 1 blit thay vì 234 blits!
         DISPLAYSURF.blit(self.cached_bg, offset)
 
 
 class Wall:
-    """Tường viền game"""
-    def __init__(self):
+    """Tường viền game — draws along world boundaries"""
+    def __init__(self, world_cols=None, world_rows=None):
+        from config import NUM_TILES_WIDTH, NUM_TILES_HEIGHT
         self.image = pygame.transform.scale(pygame.image.load("images\\wall.png"), (TILE_SIZE, TILE_SIZE))
+        self.cols = world_cols or NUM_TILES_WIDTH
+        self.rows = world_rows or NUM_TILES_HEIGHT
     
     def draw(self, offset=(0, 0)):
-        # Draw top and bottom walls
-        for i in range(NUM_TILES_WIDTH):
-            x_top = i * TILE_SIZE + offset[0]
-            y_top = offset[1]
-            DISPLAYSURF.blit(self.image, (x_top, y_top))
-            
-            x_bot = i * TILE_SIZE + offset[0]
-            y_bot = WINDOWHEIGHT - TILE_SIZE + offset[1]
-            DISPLAYSURF.blit(self.image, (x_bot, y_bot))
-        
-        # Draw left and right walls
-        for i in range(1, NUM_TILES_HEIGHT - 1):
-            x_left = offset[0]
-            y_left = i * TILE_SIZE + offset[1]
-            DISPLAYSURF.blit(self.image, (x_left, y_left))
-            
-            x_right = WINDOWWIDTH - TILE_SIZE + offset[0]
-            y_right = i * TILE_SIZE + offset[1]
-            DISPLAYSURF.blit(self.image, (x_right, y_right))
+        # Top and bottom walls
+        for i in range(self.cols):
+            DISPLAYSURF.blit(self.image, (i * TILE_SIZE + offset[0], offset[1]))
+            DISPLAYSURF.blit(self.image, (i * TILE_SIZE + offset[0],
+                                          (self.rows - 1) * TILE_SIZE + offset[1]))
+        # Left and right walls
+        for j in range(1, self.rows - 1):
+            DISPLAYSURF.blit(self.image, (offset[0], j * TILE_SIZE + offset[1]))
+            DISPLAYSURF.blit(self.image, ((self.cols - 1) * TILE_SIZE + offset[0],
+                                          j * TILE_SIZE + offset[1]))
 
 
 class Score:

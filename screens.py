@@ -10,6 +10,7 @@ from config import (DISPLAYSURF, WINDOWWIDTH, WINDOWHEIGHT, TILE_SIZE,
 from levels import LEVELS
 from particles import particles
 from collision import check_collision
+from camera import Camera
 from utils import screen_shake
 from ui import Button, draw_hud
 from entities import Bullet
@@ -130,9 +131,9 @@ def gamestart(wall, background):
 # =============================================================================
 # GAMEPLAY SCREEN
 # =============================================================================
-def gameplay(background, wall, knight, door, obstacle_list, guard_list, bullets, keys, score, powerups, current_level):
-    """Main gameplay loop"""
-    door.__init__()
+def gameplay(background, wall, knight, door, obstacle_list, guard_list, bullets, keys,
+             score, powerups, current_level, world_width=None, world_height=None):
+    """Main gameplay loop with camera support."""
     score.__init__()
     count = 0
     move_left = False
@@ -140,11 +141,19 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list, bullets,
     move_top = False
     move_down = False
     sprint = False
-    last_shot_time = 0
     shoot_interval = LEVELS[current_level]['shoot_interval']
     start_time = pygame.time.get_ticks()
     key_count = len(keys)
     dying = False  # Death animation state
+    last_shot_times = {id(guard): 0 for guard in guard_list}
+    
+    # World dimensions (default to viewport if not supplied)
+    w_width = world_width or WINDOWWIDTH
+    w_height = world_height or WINDOWHEIGHT
+    
+    # Camera setup
+    camera = Camera(w_width, w_height)
+    camera.snap_to(knight.x, knight.y)
     
     while True:
         for event in pygame.event.get():
@@ -180,47 +189,56 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list, bullets,
                 if event.key in (K_LSHIFT, K_RSHIFT):
                     sprint = False
         
+        # Update camera to follow player
+        camera.update(knight.x, knight.y)
+        cam_offset = camera.get_offset()
+        
+        # Screen shake is layered on top of camera offset
         screen_shake.update()
-        offset = screen_shake.get_offset()
+        shake = screen_shake.get_offset()
+        render_offset = (cam_offset[0] + shake[0], cam_offset[1] + shake[1])
         
         DISPLAYSURF.fill(COLORS['bg_dark'])
         
-        background.draw(offset)
-        wall.draw(offset)
-        door.draw(offset)
+        background.draw(render_offset)
+        wall.draw(render_offset)
+        door.draw(render_offset)
         
         for key in keys:
             key.update()
-            key.draw(offset)
+            key.draw(render_offset)
         
         for powerup in powerups:
             powerup.update()
-            powerup.draw()
+            powerup.draw(render_offset)
         
         for guard in guard_list:
-            guard.draw(offset)
+            guard.draw(render_offset)
             guard.update(obstacle_list)
         
         for obstacle in obstacle_list:
-            obstacle.draw(offset)
+            obstacle.draw(render_offset)
         
         # Shooting
         current_time = pygame.time.get_ticks()
-        if current_time - last_shot_time > shoot_interval:
-            for guard in guard_list:
-                new_bullet = Bullet(guard, knight.x, knight.y)
-                bullets.append(new_bullet)
-                last_shot_time = current_time
+        fired_bullet = False
+        for guard in guard_list:
+            guard_id = id(guard)
+            if current_time - last_shot_times[guard_id] > shoot_interval:
+                bullets.append(Bullet(guard, knight.x, knight.y))
+                last_shot_times[guard_id] = current_time
+                fired_bullet = True
+        if fired_bullet:
             play_sound('bullet_fire')
         
         for bullet in bullets[:]:
             bullet.update()
-            bullet.draw(offset)
+            bullet.draw(render_offset)
         
         particles.update()
         particles.draw()
         
-        knight.draw(offset)
+        knight.draw(render_offset)
         
         # If dying, update death animation and skip normal gameplay
         if dying:
@@ -231,17 +249,16 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list, bullets,
             pygame.display.update()
             continue
         
-        knight.update(move_left, move_right, move_top, move_down, obstacle_list, sprint)
+        knight.update(move_left, move_right, move_top, move_down, obstacle_list, sprint,
+                      world_width=w_width, world_height=w_height)
         score.update(start_time)
         
-        # Check door
+        # Check door — collision-based instead of hardcoded coords
         if count == key_count:
             door.open()
-            if (abs(knight.x - (WINDOWWIDTH - 2 * TILE_SIZE)) < 10 and 
-                abs(knight.y - (WINDOWHEIGHT - 2 * TILE_SIZE)) < 10):
+            if check_collision(knight, door):
                 particles.emit(knight.x + TILE_SIZE // 2, knight.y + TILE_SIZE // 2, 
                               COLORS['door_glow'], 15, 5, 40, 6)
-                play_sound('level_complete')
                 return 'win'
         
         # Key collection
@@ -286,8 +303,9 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list, bullets,
                 dying = True
                 break
             
-            if bullet.x < TILE_SIZE or bullet.x > WINDOWWIDTH - TILE_SIZE or \
-               bullet.y < TILE_SIZE or bullet.y > WINDOWHEIGHT - TILE_SIZE:
+            # Bullet out-of-bounds uses WORLD bounds, not viewport
+            if (bullet.x < TILE_SIZE or bullet.x > w_width - TILE_SIZE or
+                bullet.y < TILE_SIZE or bullet.y > w_height - TILE_SIZE):
                 bullets.remove(bullet)
                 continue
             
@@ -309,6 +327,7 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list, bullets,
                 dying = True
                 break
         
+        # HUD is always drawn in screen-space (no camera offset)
         draw_hud(knight, score, count, key_count, current_level)
         
         fpsClock.tick(FPS)
@@ -319,7 +338,9 @@ def gameplay(background, wall, knight, door, obstacle_list, guard_list, bullets,
 # GAME OVER SCREEN
 # =============================================================================
 def gameover(result, score, current_level):
-    """Game over screen - hiển thị kết quả và options"""
+    """Game over screen - hiển thị kết quả và options.
+    Supports SPACE key for quick retry.
+    """
     if result == 'win':
         play_sound('level_complete')
     else:
@@ -331,12 +352,19 @@ def gameover(result, score, current_level):
     
     font_big = pygame.font.SysFont("consolas", 60, bold=True)
     font_med = pygame.font.SysFont("consolas", 30)
+    font_hint = pygame.font.SysFont("consolas", 20)
     
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            # SPACE to retry quickly
+            if event.type == KEYDOWN and event.key == K_SPACE:
+                if result == 'lose':
+                    return 'retry'
+                elif result == 'win' and current_level < len(LEVELS) - 1:
+                    return 'next'
         
         DISPLAYSURF.fill(COLORS['bg_dark'])
         
@@ -360,6 +388,9 @@ def gameover(result, score, current_level):
                 next_level_button.draw()
                 if next_level_button.is_click():
                     return 'next'
+                # Hint for SPACE
+                hint = font_hint.render("Press SPACE for next level", True, (120, 120, 140))
+                DISPLAYSURF.blit(hint, (WINDOWWIDTH // 2 - hint.get_width() // 2, 540))
             else:
                 complete_text = font_med.render("All Levels Complete!", True, COLORS['gold'])
                 DISPLAYSURF.blit(complete_text, (WINDOWWIDTH // 2 - complete_text.get_width() // 2, 330))
@@ -371,6 +402,10 @@ def gameover(result, score, current_level):
             
             hint_text = font_med.render("Use SPACE to dash through danger!", True, (180, 180, 180))
             DISPLAYSURF.blit(hint_text, (WINDOWWIDTH // 2 - hint_text.get_width() // 2, 280))
+            
+            # Hint for quick retry
+            retry_hint = font_hint.render("Press SPACE to retry", True, (120, 200, 120))
+            DISPLAYSURF.blit(retry_hint, (WINDOWWIDTH // 2 - retry_hint.get_width() // 2, 340))
         
         button_back.draw()
         replay_button.draw()

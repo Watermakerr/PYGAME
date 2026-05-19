@@ -93,7 +93,8 @@ class Knight:
                           COLORS['particle_magic'], 8, 4, 20, 5)
             play_sound('dash')
     
-    def update(self, move_left, move_right, move_top, move_down, obstacles, sprint=False):
+    def update(self, move_left, move_right, move_top, move_down, obstacles, sprint=False,
+               world_width=None, world_height=None):
         # Handle dash
         if self.is_dashing and self.dash_duration > 0:
             self.dash_duration -= 1
@@ -160,9 +161,11 @@ class Knight:
                 if not check_collision_with_grid(test_rect, hitbox_shrink):
                     self.y = new_y
         
-        # Boundary check
-        self.x = max(TILE_SIZE, min(WINDOWWIDTH - 2 * TILE_SIZE, self.x))
-        self.y = max(TILE_SIZE, min(WINDOWHEIGHT - 2 * TILE_SIZE, self.y))
+        # Boundary check (clamp to world bounds, not viewport)
+        w_bound = (world_width or WINDOWWIDTH) - 2 * TILE_SIZE
+        h_bound = (world_height or WINDOWHEIGHT) - 2 * TILE_SIZE
+        self.x = max(TILE_SIZE, min(w_bound, self.x))
+        self.y = max(TILE_SIZE, min(h_bound, self.y))
         
         # Track movement for animation
         self.is_moving = move_left or move_right or move_top or move_down
@@ -452,12 +455,26 @@ class Key:
 # =============================================================================
 class Door:
     """Cửa thoát level"""
-    def __init__(self):
-        self.image = pygame.transform.scale(pygame.image.load("images\\door_close.png"), (TILE_SIZE, TILE_SIZE))
-        self.x = WINDOWWIDTH - TILE_SIZE
-        self.y = WINDOWHEIGHT - 2 * TILE_SIZE
+    def __init__(self, x=None, y=None):
+        self.closed_image = pygame.transform.scale(pygame.image.load("images\\door_close.png"), (TILE_SIZE, TILE_SIZE))
+        self.open_image = pygame.transform.scale(pygame.image.load("images\\door_open.png"), (TILE_SIZE, TILE_SIZE))
+        self.image = self.closed_image
+        self.x = x if x is not None else (WINDOWWIDTH - TILE_SIZE)
+        self.y = y if y is not None else (WINDOWHEIGHT - 2 * TILE_SIZE)
+        self.width = TILE_SIZE
+        self.height = TILE_SIZE
         self.is_open = False
         self.glow_time = 0
+    
+    def reset(self, x=None, y=None):
+        """Reset door state for a new level attempt."""
+        self.image = self.closed_image
+        self.is_open = False
+        self.glow_time = 0
+        if x is not None:
+            self.x = x
+        if y is not None:
+            self.y = y
     
     def draw(self, offset=(0, 0)):
         draw_x = self.x + offset[0]
@@ -474,7 +491,9 @@ class Door:
         DISPLAYSURF.blit(self.image, (draw_x, draw_y))
     
     def open(self):
-        self.image = pygame.transform.scale(pygame.image.load("images\\door_open.png"), (TILE_SIZE, TILE_SIZE))
+        if self.is_open:
+            return
+        self.image = self.open_image
         self.is_open = True
         play_sound('door_open')
 
@@ -505,24 +524,26 @@ class PowerUp:
         if abs(self.float_offset) > 3:
             self.float_dir *= -1
     
-    def draw(self):
+    def draw(self, offset=(0, 0)):
         if self.collected:
             return
+        draw_x = self.x + offset[0]
+        draw_y = self.y + offset[1]
         color = self.colors.get(self.power_type, (255, 255, 255))
         
         glow_surf = pygame.Surface((TILE_SIZE + 20, TILE_SIZE + 20), pygame.SRCALPHA)
         pygame.draw.circle(glow_surf, (*color, 50), (TILE_SIZE // 2 + 10, TILE_SIZE // 2 + 10), TILE_SIZE // 2 + 10)
-        DISPLAYSURF.blit(glow_surf, (self.x - 10, self.y - 10 + self.float_offset))
+        DISPLAYSURF.blit(glow_surf, (draw_x - 10, draw_y - 10 + self.float_offset))
         
         pygame.draw.circle(DISPLAYSURF, color, 
-                          (int(self.x + TILE_SIZE // 2), int(self.y + TILE_SIZE // 2 + self.float_offset)), 
+                          (int(draw_x + TILE_SIZE // 2), int(draw_y + TILE_SIZE // 2 + self.float_offset)), 
                           TILE_SIZE // 3)
         pygame.draw.circle(DISPLAYSURF, (255, 255, 255), 
-                          (int(self.x + TILE_SIZE // 2), int(self.y + TILE_SIZE // 2 + self.float_offset)), 
+                          (int(draw_x + TILE_SIZE // 2), int(draw_y + TILE_SIZE // 2 + self.float_offset)), 
                           TILE_SIZE // 3, 2)
         
         font = pygame.font.SysFont("arial", 16, bold=True)
         icons = {'speed': 'S', 'shield': 'D', 'slow_time': 'T'}
         text = font.render(icons.get(self.power_type, '?'), True, (255, 255, 255))
-        text_rect = text.get_rect(center=(self.x + TILE_SIZE // 2, self.y + TILE_SIZE // 2 + self.float_offset))
+        text_rect = text.get_rect(center=(draw_x + TILE_SIZE // 2, draw_y + TILE_SIZE // 2 + self.float_offset))
         DISPLAYSURF.blit(text, text_rect)

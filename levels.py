@@ -1,23 +1,29 @@
 # levels.py - Level data và configurations
-from config import TILE_SIZE, WINDOWWIDTH, WINDOWHEIGHT
+# ALL coordinates are in TILE units. Conversion to pixels happens in load_level().
 
 LEVELS = [
     {
         'name': "The Beginning",
+        'world_cols': 18,
+        'world_rows': 13,
         'obstacles': [
             (3, 5), (4, 5), (5, 5), (6, 5),
             (3, 8), (3, 9),
             (9, 1), (9, 2), (9, 3), (9, 4),
             (9, 7), (9, 8), (9, 9),
         ],
-        'keys': [(550, 400), (300, 100), (600, 100)],
-        'guards': [(500, 100)],
-        'knight_start': (TILE_SIZE, WINDOWHEIGHT - 2 * TILE_SIZE),
+        'keys': [(11, 8), (6, 2), (12, 2)],
+        'guards': [(10, 2)],
+        'powerups': [],
+        'door': (16, 11),
+        'knight_start': (1, 11),
         'shoot_interval': 600,
         'guard_speed': 2,
     },
     {
         'name': "The Maze",
+        'world_cols': 18,
+        'world_rows': 13,
         'obstacles': [
             (2, 3), (3, 3), (4, 3), (5, 3),
             (5, 4), (5, 5), (5, 6),
@@ -27,14 +33,18 @@ LEVELS = [
             (13, 2), (13, 3), (13, 4),
             (3, 7), (3, 8), (3, 9), (3, 10),
         ],
-        'keys': [(150, 200), (400, 250), (650, 450), (750, 150)],
-        'guards': [(300, 200), (600, 350)],
-        'knight_start': (TILE_SIZE, TILE_SIZE),
+        'keys': [(3, 4), (8, 5), (13, 9), (15, 3)],
+        'guards': [(6, 4), (12, 7)],
+        'powerups': [(8, 6, 'speed')],
+        'door': (16, 11),
+        'knight_start': (1, 1),
         'shoot_interval': 550,
         'guard_speed': 2.3,
     },
     {
         'name': "Guardian's Lair",
+        'world_cols': 18,
+        'world_rows': 13,
         'obstacles': [
             (4, 2), (4, 3), (4, 4), (4, 5), (4, 6), (4, 7), (4, 8), (4, 9), (4, 10),
             (8, 2), (8, 3), (8, 4), (8, 5), (8, 6), (8, 7), (8, 8),
@@ -42,16 +52,21 @@ LEVELS = [
             (5, 6), (6, 6), (7, 6),
             (9, 5), (10, 5), (11, 5),
         ],
-        'keys': [(100, 100), (300, 450), (550, 200), (700, 400), (150, 300)],
-        'guards': [(300, 100), (500, 150), (750, 450)],
-        'knight_start': (TILE_SIZE, WINDOWHEIGHT - 2 * TILE_SIZE),
+        'keys': [(2, 2), (6, 9), (11, 4), (14, 8), (3, 6)],
+        'guards': [(6, 2), (10, 3), (15, 9)],
+        'powerups': [(9, 6, 'speed'), (2, 4, 'shield')],
+        'door': (16, 11),
+        'knight_start': (1, 11),
         'shoot_interval': 800,
         'guard_speed': 1.8,
     },
     {
         'name': "The Final Challenge",
+        'world_cols': 36,   # 2 rooms wide!
+        'world_rows': 13,
         'obstacles': [
-            (2, 2), (3, 2), (4, 2), 
+            # --- Room 1 (cols 0-17) ---
+            (2, 2), (3, 2), (4, 2),
             (2, 5), (3, 5), (4, 5), (5, 5),
             (6, 6), (6, 7), (6, 8),
             (8, 2), (8, 3), (8, 4),
@@ -60,10 +75,31 @@ LEVELS = [
             (14, 4), (14, 5), (14, 6),
             (3, 8), (3, 9),
             (12, 2), (13, 2),
+            # --- Room 2 (cols 18-35) ---
+            (20, 2), (20, 3), (20, 4), (20, 5),
+            (22, 6), (23, 6), (24, 6), (25, 6),
+            (25, 7), (25, 8), (25, 9),
+            (27, 2), (27, 3), (27, 4),
+            (29, 5), (29, 6), (29, 7), (29, 8),
+            (31, 3), (31, 4), (31, 5),
+            (22, 10), (23, 10),
+            (33, 7), (33, 8),
         ],
-        'keys': [(100, 100), (200, 400), (400, 150), (550, 350), (700, 100)],
-        'guards': [(350, 100), (650, 450), (800, 250)],
-        'knight_start': (TILE_SIZE, WINDOWHEIGHT - 2 * TILE_SIZE),
+        'keys': [
+            (2, 3), (4, 8), (9, 3), (11, 7), (14, 2),
+            (21, 3), (26, 9), (30, 2), (33, 5),
+        ],
+        'guards': [
+            (7, 2), (13, 9), (16, 5),
+            (23, 3), (28, 8), (32, 4),
+        ],
+        'powerups': [
+            (9, 6, 'speed'),
+            (5, 4, 'shield'),
+            (26, 5, 'slow_time'),
+        ],
+        'door': (34, 11),
+        'knight_start': (1, 11),
         'shoot_interval': 800,
         'guard_speed': 2.0,
     },

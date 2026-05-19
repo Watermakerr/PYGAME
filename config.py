@@ -13,6 +13,12 @@ TILE_SIZE = 50
 NUM_TILES_WIDTH = WINDOWWIDTH // TILE_SIZE
 NUM_TILES_HEIGHT = WINDOWHEIGHT // TILE_SIZE
 
+# Room dimensions (each room = one viewport)
+ROOM_COLS = NUM_TILES_WIDTH    # 18 tiles
+ROOM_ROWS = NUM_TILES_HEIGHT   # 13 tiles
+ROOM_WIDTH = ROOM_COLS * TILE_SIZE   # 900 px
+ROOM_HEIGHT = ROOM_ROWS * TILE_SIZE  # 650 px
+
 # Game settings
 FPS = 60
 fpsClock = pygame.time.Clock()
