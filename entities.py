@@ -2,6 +2,7 @@
 import pygame
 import math
 import os
+from collections import deque
 from config import DISPLAYSURF, TILE_SIZE, WINDOWWIDTH, WINDOWHEIGHT, COLORS
 from collision import check_collision_with_grid
 from particles import particles
@@ -248,7 +249,8 @@ class Knight:
 # =============================================================================
 class Guard:
     """Enemy guard với các types khác nhau"""
-    def __init__(self, x, y, knight, guard_type='normal', speed=3):
+    def __init__(self, x, y, knight, guard_type='normal', speed=3,
+                 world_cols=None, world_rows=None, obstacle_tiles=None):
         self.x = x
         self.y = y
         self.base_speed = speed
@@ -257,6 +259,9 @@ class Guard:
         self.width = TILE_SIZE
         self.height = TILE_SIZE
         self.guard_type = guard_type
+        self.world_cols = world_cols
+        self.world_rows = world_rows
+        self.obstacle_tiles = set(obstacle_tiles or [])
         
         # Sprite animations (Wraith_02)
         sprite_base = os.path.join("images", "Wraith_02", "PNG Sequences")
@@ -280,6 +285,81 @@ class Guard:
         
         self.slowed = False
         self.slow_timer = 0
+        self.path = []
+        self.path_index = 0
+        self.path_timer = 0
+        self.repath_interval = 20
+        self.last_target_tile = None
+
+    def _tile_from_pos(self, x, y):
+        return (int((x + TILE_SIZE / 2) // TILE_SIZE),
+                int((y + TILE_SIZE / 2) // TILE_SIZE))
+
+    def _is_walkable_tile(self, tile):
+        if self.world_cols is None or self.world_rows is None:
+            return False
+        col, row = tile
+        if col < 1 or col > self.world_cols - 2 or row < 1 or row > self.world_rows - 2:
+            return False
+        return tile not in self.obstacle_tiles
+
+    def _build_path(self, start_tile, goal_tile):
+        if self.world_cols is None or self.world_rows is None:
+            return []
+        if start_tile == goal_tile:
+            return []
+
+        frontier = deque([start_tile])
+        came_from = {start_tile: None}
+
+        while frontier:
+            current = frontier.popleft()
+            if current == goal_tile:
+                break
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                next_tile = (current[0] + dx, current[1] + dy)
+                if next_tile in came_from:
+                    continue
+                if not self._is_walkable_tile(next_tile) and next_tile != goal_tile:
+                    continue
+                came_from[next_tile] = current
+                frontier.append(next_tile)
+
+        if goal_tile not in came_from:
+            return []
+
+        path = []
+        cur = goal_tile
+        while cur != start_tile:
+            path.append(cur)
+            cur = came_from[cur]
+        path.reverse()
+        return path
+
+    def _move_toward_point(self, target_x, target_y, speed, shrink):
+        moved = False
+
+        dx = target_x - (self.x + TILE_SIZE / 2)
+        if abs(dx) > 1:
+            step_x = speed if dx > 0 else -speed
+            if abs(dx) < abs(step_x):
+                step_x = dx
+            test_rect = pygame.Rect(self.x + step_x, self.y, TILE_SIZE, TILE_SIZE)
+            if not check_collision_with_grid(test_rect, shrink):
+                self.x += step_x
+                moved = True
+
+        dy = target_y - (self.y + TILE_SIZE / 2)
+        if abs(dy) > 1:
+            step_y = speed if dy > 0 else -speed
+            if abs(dy) < abs(step_y):
+                step_y = dy
+            test_rect = pygame.Rect(self.x, self.y + step_y, TILE_SIZE, TILE_SIZE)
+            if not check_collision_with_grid(test_rect, shrink):
+                self.y += step_y
+                moved = True
+
+        return moved
     
     def update(self, obstacles):
         if self.slow_timer > 0:
@@ -288,30 +368,59 @@ class Guard:
         else:
             self.slowed = False
             current_speed = self.speed
-        
-        if self.knight.x > self.x:
-            new_x = self.x + current_speed
-            test_rect = pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE)
-            if not check_collision_with_grid(test_rect):
-                self.x = new_x
-        
-        if self.knight.x < self.x:
-            new_x = self.x - current_speed
-            test_rect = pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE)
-            if not check_collision_with_grid(test_rect):
-                self.x = new_x
-        
-        if self.knight.y < self.y:
-            new_y = self.y - current_speed
-            test_rect = pygame.Rect(self.x, new_y, TILE_SIZE, TILE_SIZE)
-            if not check_collision_with_grid(test_rect):
-                self.y = new_y
-        
-        if self.knight.y > self.y:
-            new_y = self.y + current_speed
-            test_rect = pygame.Rect(self.x, new_y, TILE_SIZE, TILE_SIZE)
-            if not check_collision_with_grid(test_rect):
-                self.y = new_y
+
+        hitbox_shrink = 4
+        used_path = False
+
+        if self.world_cols is not None and self.world_rows is not None:
+            self.path_timer -= 1
+            target_tile = self._tile_from_pos(self.knight.x, self.knight.y)
+            current_tile = self._tile_from_pos(self.x, self.y)
+
+            if (self.path_timer <= 0 or self.last_target_tile != target_tile or
+                self.path_index >= len(self.path) or
+                (self.path and current_tile == self.path[self.path_index])):
+                self.path = self._build_path(current_tile, target_tile)
+                self.path_index = 0
+                self.path_timer = self.repath_interval
+                self.last_target_tile = target_tile
+
+            if self.path_index < len(self.path):
+                used_path = True
+                next_tile = self.path[self.path_index]
+                target_x = next_tile[0] * TILE_SIZE + TILE_SIZE / 2
+                target_y = next_tile[1] * TILE_SIZE + TILE_SIZE / 2
+                moved = self._move_toward_point(target_x, target_y, current_speed, hitbox_shrink)
+
+                if self._tile_from_pos(self.x, self.y) == next_tile:
+                    self.path_index += 1
+                elif not moved:
+                    self.path_timer = 0
+
+        if not used_path:
+            if self.knight.x > self.x:
+                new_x = self.x + current_speed
+                test_rect = pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE)
+                if not check_collision_with_grid(test_rect, hitbox_shrink):
+                    self.x = new_x
+
+            if self.knight.x < self.x:
+                new_x = self.x - current_speed
+                test_rect = pygame.Rect(new_x, self.y, TILE_SIZE, TILE_SIZE)
+                if not check_collision_with_grid(test_rect, hitbox_shrink):
+                    self.x = new_x
+
+            if self.knight.y < self.y:
+                new_y = self.y - current_speed
+                test_rect = pygame.Rect(self.x, new_y, TILE_SIZE, TILE_SIZE)
+                if not check_collision_with_grid(test_rect, hitbox_shrink):
+                    self.y = new_y
+
+            if self.knight.y > self.y:
+                new_y = self.y + current_speed
+                test_rect = pygame.Rect(self.x, new_y, TILE_SIZE, TILE_SIZE)
+                if not check_collision_with_grid(test_rect, hitbox_shrink):
+                    self.y = new_y
         
         # Update facing direction
         if self.knight.x > self.x:

@@ -50,7 +50,7 @@ COLORS = {
 # Load images
 icon = pygame.image.load("images\\guard.png")
 pygame.display.set_icon(icon)
-pygame.display.set_caption("Dungeon Escape - Enhanced Edition")
+pygame.display.set_caption("Dungeon Escape")
 
 key_image = pygame.transform.scale(pygame.image.load("images\\key.png"), (TILE_SIZE, TILE_SIZE))
 start_button_image = pygame.image.load("images\\start_button.png")

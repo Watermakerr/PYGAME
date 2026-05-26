@@ -1,6 +1,6 @@
 # main.py - Entry point cho game Dungeon Escape
 """
-Dungeon Escape - Enhanced Edition
+Dungeon Escape
 =================================
 Cấu trúc đơn giản:
 - config.py           : Constants, colors, settings
@@ -50,8 +50,16 @@ def load_level(level_index, knight):
     guard_list = []
     for i, pos in enumerate(level['guards']):
         guard_type = ['normal', 'fast', 'heavy'][i % 3] if level_index >= 2 else 'normal'
-        guard_list.append(Guard(pos[0] * TILE_SIZE, pos[1] * TILE_SIZE,
-                                knight, guard_type, level['guard_speed']))
+        guard_list.append(Guard(
+            pos[0] * TILE_SIZE,
+            pos[1] * TILE_SIZE,
+            knight,
+            guard_type,
+            level['guard_speed'],
+            world_cols,
+            world_rows,
+            level['obstacles'],
+        ))
     
     # Create power-ups (tile → pixel) — now stored in level data
     powerups = [PowerUp(pu[0] * TILE_SIZE, pu[1] * TILE_SIZE, pu[2])

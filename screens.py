@@ -102,7 +102,7 @@ def gamestart(wall, background):
         title = font_big.render(title_text, True, COLORS['gold'])
         DISPLAYSURF.blit(title, (WINDOWWIDTH // 2 - title.get_width() // 2, title_y + glow_offset))
         
-        subtitle = font_small.render("Enhanced Edition", True, (150, 150, 180))
+        subtitle = font_small.render(" V1", True, (150, 150, 180))
         DISPLAYSURF.blit(subtitle, (WINDOWWIDTH // 2 - subtitle.get_width() // 2, title_y + 65))
         
         start_button.draw()
